@@ -1,0 +1,110 @@
+version: "3"
+services:
+  server:
+    image: rancher/server:v1.6.2
+    restart: unless-stopped
+    command: [
+      "--db-host", "${DB_HOST:-192.168.1.166}",
+      "--db-port", "${DB_PORT:-3306}",
+      "--db-user", "${DB_USER:-cattle}",
+      "--db-pass", "${DB_PASS:-cattle}",
+      "--db-name", "${DB_NAME:-cattle}",
+      "--advertise-address","rancher1_server_1"
+    ]
+    links:
+      - registry
+    depends_on:
+      - db
+    ports:
+      - "${SERVER_PORT:-8080}:8080"
+#      - "${SERVER_CLUSTER_PORT:-9345}:9345"
+      - "${IPSEC_PORT1:-500}:500/udp"
+      - "${IPSEC_PORT2:-4500}:4500/udp"
+    expose:
+      - "9345"
+    volumes:
+      - server-state:/var/lib/cattle:rw
+      - /etc/localtime:/etc/localtime:ro
+    networks:
+      galera_db:
+
+  db:
+    build: 
+      context: ./mariadb
+    restart: unless-stopped
+    expose:
+      - "3307"
+    ports:
+      - "${MYSQL_PORT:-3306}:3306"
+      - "${MAXSCALE_PORT:-3307}:3307"
+      - "${CLUSTER_PORT1:-4444}:4444"
+      - "${CLUSTER_PORT2:-4567}:4567"
+      - "${CLUSTER_PORT3:-4567}:4567/udp"
+      - "${CLUSTER_PORT4:-4568}:4568"
+      - "${corosync_port:-5405}:5405/udp"
+    environment:
+      #MYSQL_RANDOM_ROOT_PASSWORD: "yes"
+      MYSQL_ROOT_PASSWORD: "1234"
+      MYSQL_USER: "${DB_USER:-cattle}"
+      MYSQL_PASSWORD: "${DB_PASS:-cattle}"
+     #MYSQL_DATABASE: "${DB_NAME:-cattle}"
+
+    volumes:
+      - db-data1:/var/lib/mysql:rw
+      - db-logs1:/var/log/mysql:rw
+      - /etc/localtime:/etc/localtime:ro
+      - ./mariadb/plus.sql:/docker-entrypoint-initdb.d/plus.sql
+      - ./mariadb/corosync/corosync.conf:/etc/corosync/corosync.conf
+      #- ./mariadb/maxscale.cnf:/etc/maxscale.cnf
+    command: [
+      "--character-set-server", "${DB_CHARACTER_SET:-utf8}",
+      "--collation-server", "${DB_COLLATION_SERVER:-utf8_general_ci}",
+      "--wsrep-node-address", "${DB_NODE_ADDRESS:-rancher1_db_1}",
+      "--wsrep-cluster-name", "${WSREP_CLUSTER_NAME:-mariadb_cluster}",
+      "--wsrep-sst-donor","${WSREP_SST_DONOR:-rancher1_db_1}",
+      "--wsrep-cluster-address", "${WSREP_CLUSTER_ADDRESS:-gcomm://rancher1_db_1,rancher2_db_1,rancher3_db_1}",
+      "--wsrep-sst-auth", "${WSREP_SST_AUTH:-root:1234}",
+      "--wsrep-new-cluster"
+    ]
+    networks:
+      galera_db:
+
+  registry:
+    image: registry:2.6
+    restart: unless-stopped
+    ports:
+      - "${REGISTRY_PORT:-5000}:5000"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - registry_image:/var/lib/registry
+  
+
+#  arbitrator:
+#    build:
+#      context: ./arbitrator
+#    restart: unless-stopped
+#    depends_on:
+#      - db
+#    networks:
+#      galera_db:
+    #ports:
+    #  - "4444:4444"
+    #  - "4567:4567"
+#    expose:
+#      - "4444"
+#      - "4567" 
+
+volumes:
+  server-state:
+  db-data1:
+  db-logs1:
+  registry_image:
+
+networks:
+  galera_db:
+    external: true
+    #ipam:
+     #driver: default
+     # config:
+     #   - subnet: 10.0.0.0/24
+      #   gateway: 10.0.0.1

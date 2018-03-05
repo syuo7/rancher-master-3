@@ -1,43 +1,43 @@
-[maxscale]                                                             
+[maxscale]
 threads=1
 
-[Splitter Service]                                                             
-type=service                                                                   
-router=readwritesplit                                                          
-servers=rancher1_db_1,rancher2_db_1,rancher3_db_1
-user=maxscale                                                            
+[Splitter Service]
+type=service
+router=readwritesplit
+servers=rancher-1,rancher-2,rancher-3
+user=maxscale
 passwd=maxscalepass
 
-[Splitter Listener]                                                            
-type=listener                                                                  
-service=Splitter Service                                                       
-protocol=MySQLClient                                                           
-port=3307                                                                      
+[Splitter Listener]
+type=listener
+service=Splitter Service
+protocol=MySQLClient
+port=3307
 socket=/tmp/ClusterMaster
 
-[rancher1_db_1]
-type=server                                                                    
-address=192.168.55.11                                                        
-port=3306                                                                      
-protocol=MySQLBackend
-
-[rancher2_db_1]
+[rancher-1]
 type=server
-address=192.168.55.12
+address=192.168.1.151
 port=3306
 protocol=MySQLBackend
 
-[rancher3_db_1]
+[rancher-2]
 type=server
-address=192.168.55.13
+address=192.168.1.152
 port=3306
 protocol=MySQLBackend
 
-[Galera Monitor]                                                               
-type=monitor                                                                   
-module=galeramon                                                               
+[rancher-3]
+type=server
+address=192.168.1.153
+port=3306
+protocol=MySQLBackend
+
+[Galera Monitor]
+type=monitor
+module=galeramon
 disable_master_failback=1
-servers=rancher1_db_1,rancher2_db_1,rancher3_db_1
+servers=rancher-1,rancher-2,rancher-3
 user=monitor
 passwd=monitorpass
 

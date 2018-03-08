@@ -1,7 +1,7 @@
 version: "3"
 services:
   server:
-    image: rancher/server:v1.6.14
+    image: rancher/enterprise:v1.6.14
     restart: unless-stopped
     command: [
       "--db-host", "${DB_HOST:-192.168.1.167}",
@@ -11,8 +11,6 @@ services:
       "--db-name", "${DB_NAME:-cattle}",
       "--advertise-address","rancher-3"
     ]
-    links:
-      - registry
     depends_on:
       - db
     ports:
@@ -78,24 +76,10 @@ services:
 #    networks:
 #      galera_db:
 
-  registry:
-    image: registry:2.6
-    restart: unless-stopped
-    ports:
-      - "${REGISTRY_PORT:-5000}:5000"
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - registry_image:/var/lib/registry
-    extra_hosts:
-      - "rancher-1:192.168.1.151"
-      - "rancher-2:192.168.1.152"
-      - "rancher-3:192.168.1.153"
-  
 volumes:
   server-state:
   db-data1:
   db-logs1:
-  registry_image:
 
 #networks:
 #  galera_db:

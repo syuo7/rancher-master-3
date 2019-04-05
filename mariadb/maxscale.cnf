@@ -1,5 +1,5 @@
 [maxscale]
-threads=1
+threads=auto
 
 [Splitter Service]
 type=service
@@ -13,7 +13,6 @@ type=listener
 service=Splitter Service
 protocol=MySQLClient
 port=3307
-socket=/tmp/ClusterMaster
 
 [rancher-1]
 type=server

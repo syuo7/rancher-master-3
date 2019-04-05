@@ -1,5 +1,5 @@
 [mysqld]
-max_allowed_packet=1G
+#max_allowed_packet=1G
 log_bin=ON
 log_slave_updates=1
 binlog_format=row
@@ -19,3 +19,4 @@ wsrep_log_conflicts=ON
 wsrep_slave_threads=4
 wsrep_provider=/usr/lib/libgalera_smm.so
 wsrep_sst_method=xtrabackup-v2
+

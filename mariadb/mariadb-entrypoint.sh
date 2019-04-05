@@ -15,5 +15,5 @@ if [ ! -f ".pass_initialize" ]; then
   mv -f /home/maxscale.cnf /etc/maxscale.cnf
   touch .pass_initialize
 fi
-maxscale &
+#maxscale &
 docker-entrypoint.sh "$@"
